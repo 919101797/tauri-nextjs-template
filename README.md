@@ -218,3 +218,52 @@ export XWIN_CACHE_DIR=~/xwin-cache
 #### 方案三：使用 Windows 虚拟机
 
 在 macOS 上使用 Windows 虚拟机进行构建。
+
+## 使用 GitHub Actions 进行跨平台构建
+
+本项目已配置 GitHub Actions 工作流，可以自动构建跨平台应用程序。使用这种方法，你不需要在本地进行复杂的交叉编译设置。
+
+### 自动构建流程
+
+项目中包含两个工作流：
+
+1. **测试构建** (`.github/workflows/test-build.yml`)
+   - 在每次推送到 `main` 或 `dev` 分支时触发
+   - 在 macOS、Windows 和 Linux 平台上进行构建测试
+   - 不创建发布版本，仅验证代码是否可以在各平台上构建
+
+2. **发布构建** (`.github/workflows/release.yml`)
+   - 在创建新标签 (以 `v` 开头，如 `v0.1.0`) 时触发
+   - 也可以通过 GitHub 界面手动触发
+   - 构建所有平台的应用并创建 GitHub Release
+   - 生成以下版本：
+     - macOS Intel (x86_64)
+     - macOS Apple Silicon (ARM64)
+     - Windows 64位
+     - Linux 64位
+
+### 如何发布新版本
+
+要使用 GitHub Actions 发布新版本，请按照以下步骤操作：
+
+1. 更新 `package.json` 中的版本号
+2. 提交更改并推送到 GitHub
+3. 创建一个新标签，格式为 `v版本号`（例如 `v0.2.1`）：
+
+```bash
+git tag v0.2.1
+git push origin v0.2.1
+```
+
+4. GitHub Actions 将自动触发构建过程
+5. 构建完成后，可以在项目的 Releases 页面找到所有平台的安装包
+
+### 手动触发构建
+
+你也可以手动触发发布构建：
+
+1. 进入项目的 GitHub 页面
+2. 点击 "Actions" 选项卡
+3. 从左侧列表选择 "Release" 工作流
+4. 点击 "Run workflow" 按钮
+5. 选择要从哪个分支构建，然后点击 "Run workflow"
