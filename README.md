@@ -113,3 +113,108 @@ And to learn more about Tauri, take a look at the following resources:
 
 - [Tauri Documentation - Guides](https://v2.tauri.app/start/) - learn about the Tauri
   toolkit.
+
+## 在 macOS 上交叉编译 Windows 应用程序
+
+如果你需要在 macOS 上构建 Windows 版本的应用程序，需要安装一些额外的依赖项和工具。以下是完整的步骤：
+
+### 准备工作
+
+1. 首先，需要安装 Windows 目标平台的 Rust 工具链：
+
+```bash
+rustup target add x86_64-pc-windows-msvc
+```
+
+2. 安装 NSIS 安装程序框架（用于创建 Windows 安装包）：
+
+```bash
+brew install nsis
+```
+
+3. 安装 LLVM，包含 Windows 资源编译器：
+
+```bash
+brew install llvm
+```
+
+4. 将 LLVM 添加到环境变量 PATH 中（需要在当前会话和永久配置中都添加）：
+
+```bash
+# 当前会话临时添加
+export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+
+# 永久添加到配置文件
+echo 'export PATH="/opt/homebrew/opt/llvm/bin:$PATH"' >> ~/.zshrc
+source ~/.zshrc
+```
+
+5. 安装 cargo-xwin 工具（关键步骤）：
+
+```bash
+cargo install --locked cargo-xwin
+```
+
+### 使用 cargo-xwin 进行跨平台构建
+
+从 Tauri v1.3 开始，官方提供了实验性的跨平台构建功能，允许在 macOS 上构建 Windows 应用程序。这种方法使用 cargo-xwin 作为构建运行器，它会自动下载并配置 Windows SDK。
+
+构建命令：
+
+```bash
+pnpm run build:win
+```
+
+这个命令已在 package.json 中配置为：
+
+```json
+"build:win": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc"
+```
+
+构建成功后，Windows 安装包将位于：
+```
+src-tauri/target/x86_64-pc-windows-msvc/release/bundle/nsis/
+```
+
+### 跨平台构建的局限性
+
+1. 这是一个实验性功能，可能不适用于所有项目
+2. 不支持跨平台构建的应用签名
+3. 某些带有复杂 C/C++ 依赖的 Rust crate 可能会构建失败
+
+如果遇到问题，可以设置 `XWIN_CACHE_DIR` 环境变量来指定 Windows SDK 的缓存位置：
+
+```bash
+export XWIN_CACHE_DIR=~/xwin-cache
+```
+
+### 其他可能遇到的问题
+
+1. **错误：Target x86_64-pc-windows-msvc is not installed**
+
+   解决方案：运行 `rustup target add x86_64-pc-windows-msvc` 安装相应的目标平台。
+
+2. **错误：called `Result::unwrap()` on an `Err` value: NotAttempted("llvm-rc")**
+
+   解决方案：安装 LLVM 并确保 `llvm-rc` 在 PATH 中可用。
+   
+   ```bash
+   brew install llvm
+   export PATH="/opt/homebrew/opt/llvm/bin:$PATH"
+   ```
+
+3. **错误与替代方案**
+
+   如果使用 cargo-xwin 仍然无法成功构建，可以考虑以下替代方案：
+
+#### 方案一：使用 Docker 容器
+
+使用包含 Windows 构建环境的 Docker 容器进行构建。
+
+#### 方案二：使用 GitHub Actions
+
+通过 GitHub Actions 在 Windows 虚拟机上构建，这是官方推荐的跨平台构建方式。
+
+#### 方案三：使用 Windows 虚拟机
+
+在 macOS 上使用 Windows 虚拟机进行构建。

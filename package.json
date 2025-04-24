@@ -8,11 +8,17 @@
     "build": "next build",
     "start": "next start",
     "lint": "biome check src/ && next lint",
-    "tauri": "tauri"
+    "tauri": "tauri",
+    "build:mac-intel": "tauri build --target x86_64-apple-darwin",
+    "build:mac-apple": "tauri build --target aarch64-apple-darwin",
+    "build:mac-universal": "tauri build --target universal-apple-darwin",
+    "build:win": "tauri build --runner cargo-xwin --target x86_64-pc-windows-msvc",
+    "build:all-mac": "pnpm build:mac-universal",
+    "build:all": "tauri build"
   },
   "dependencies": {
     "@tauri-apps/api": "^2",
-    "@tauri-apps/plugin-opener": "^2.2.6",
+    "@tauri-apps/plugin-opener": "^2",
     "next": "^15.3.1",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
